@@ -41,7 +41,6 @@
 #define SAMPLES_PER_CYCLE 64
 #define OFFSET 1
 #define CORRECTION_FACTOR 100
-#define CAN_DEVICE_ID DEVICE_1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -215,7 +214,7 @@ void Process_data_task(void *argument)
 		{
 			MeanValues meanValues[3] = {0};
 			calculate_mean(meanValues, signalQ);
-			send_data_to_queue(meanValues);
+//			send_data_to_queue(meanValues);
 
 			memset(signalQ, 0, sizeof(signalQ));
 			count = 0;
@@ -287,7 +286,7 @@ void send_data_to_queue(MeanValues values[])
 
 	for (int i = 0; i < 3; i++)
 	{
-		message.packet.canID = CAN_DEVICE_ID;
+		message.packet.canID = DEVICE_ID;
 		message.packet.canBuffer.canDataFields.ctrl0.value = 0; //revisar
 		message.packet.canBuffer.canDataFields.ctrl1.value = i; //numero do sensor
 

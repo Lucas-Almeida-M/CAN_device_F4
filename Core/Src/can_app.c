@@ -37,6 +37,24 @@ void ReceiveCAN_MSG(void *argument)
 	if (xStatus == pdPASS)
 	{
 		// conseguiu tirar da fila
+		switch (canMSG.packet.canBuffer.canDataFields.ctrl0.value)
+		{
+			case CONFIG:
+
+				break;
+			case DATA:
+
+				break;
+			case SYNC:
+				CanPacket canPacket;
+				canPacket.packet.canID = DEVICE_ID;
+				canPacket.packet.canBuffer.canDataFields.ctrl0.value = SYNC;
+				canPacket.packet.canBuffer.canDataFields.ctrl1.value = 1;
+
+				xQueueSendToBack(queue_can_sendHandle, &canPacket , 0);
+				break;
+
+		}
 
 	}
     osDelay(1);
@@ -89,6 +107,8 @@ void SendCAN_MSG(void *argument)
  *
  * @param hcan
  */
+
+int receivedtt = 0;
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
 
@@ -99,6 +119,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 	canPacket.packet.canID = RxHeader.StdId;
 	memcpy(&canPacket.packet.canBuffer, canRX, sizeof(canRX));
 	xQueueSendToBackFromISR(queue_can_receiveHandle, &canPacket, &xHigherPriorityTaskWoken);
+	receivedtt++;
 
 	HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
 

@@ -5,18 +5,18 @@ uint32_t TxMailbox;
 
 CAN_FilterTypeDef *canFilterConfig1;
 
-bool ValidatePacket(uint8_t canID)
-{
-    for (int validationId = 0; validationId < CANID_COUNT; validationId++)
-    {
-        if (canID == validationId)
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
+//bool ValidatePacket(uint8_t canID)
+//{
+//    for (int validationId = 0; validationId < CANID_COUNT; validationId++)
+//    {
+//        if (canID == validationId)
+//        {
+//            return true;
+//        }
+//    }
+//
+//    return false;
+//}
 
 
 bool CanWritePacket(uint32_t id, uint8_t *buffer, uint8_t can_rtr, uint16_t tamanho)
@@ -43,10 +43,9 @@ bool CanWritePacket(uint32_t id, uint8_t *buffer, uint8_t can_rtr, uint16_t tama
 
 void LoadFilterList(CanFilterList *filterIdList) {
 
-	for (int i = 0; i < CANID_COUNT; i++) {
-
-        filterIdList->FilterIdList[i] = (uint32_t) i;
-    }
+        filterIdList->FilterIdList[0] = (uint32_t) BROADCAST;
+        filterIdList->FilterIdList[1] = (uint32_t) BOARD_F7;
+        filterIdList->FilterIdList[2] = (uint32_t) DEVICE_ID;
 }
 
 void ConfigFilterList (uint32_t id1, uint32_t id2, uint32_t id3, uint32_t id4, uint32_t filterBank, uint8_t idType, uint8_t filterScale)

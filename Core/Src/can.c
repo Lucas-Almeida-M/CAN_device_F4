@@ -59,7 +59,7 @@ void MX_CAN1_Init(void)
   }
   /* USER CODE BEGIN CAN1_Init 2 */
   LoadFilterList(&filterList);
-    InitFilterList(filterList.FilterIdList, CANID_COUNT , FILTER_TYPE_16);
+    InitFilterList(filterList.FilterIdList, 3 , FILTER_TYPE_16);
 
 
 

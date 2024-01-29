@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#define ID 0x05
 
 #define STD_ID  0
 #define EXT_ID  1
@@ -31,23 +32,22 @@ typedef union // Ini
 	{
 		BROADCAST  = 0x00,
 		BOARD_F7   = 0x01,
-		DEVICE_1   = 0x02, // HABILITAR DE ACORDO COM DEVICE
-//		DEVICE_2   = 0x03,
-//		DEVICE_3   = 0x04,
-//		DEVICE_4   = 0x05,
-//		DEVICE_5   = 0x06,
-//		DEVICE_6   = 0x07,
-//		DEVICE_7   = 0x08,
-//		DEVICE_8   = 0x09,
-//		DEVICE_9   = 0x0A,
-//		DEVICE_10  = 0x0B,
-		CANID_COUNT
+		DEVICE_ID   = ID, // HABILITAR DE ACORDO COM DEVICE
 
 	} FilterId;
 
-	uint32_t FilterIdList[CANID_COUNT];
+	uint32_t FilterIdList[3];
 
 } CanFilterList;
+
+enum MessageType
+{
+	CONFIG = 0,
+	DATA   = 1,
+	SYNC   = 2,
+	DISCONNECT = 4
+};
+
 
 typedef struct control
 {
