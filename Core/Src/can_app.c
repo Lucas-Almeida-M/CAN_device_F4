@@ -17,6 +17,7 @@ uint8_t canTX[CAN_SIZE] = {};
 extern uint32_t TxMailbox;
 extern osMessageQId queue_can_sendHandle;
 extern osMessageQId queue_can_receiveHandle;
+extern module_cfg configs;
 
 
 
@@ -46,10 +47,13 @@ void ReceiveCAN_MSG(void *argument)
 
 				break;
 			case SYNC:
-				CanPacket canPacket;
+				CanPacket canPacket = {0};
 				canPacket.packet.canID = DEVICE_ID;
 				canPacket.packet.canBuffer.canDataFields.ctrl0.value = SYNC;
-				canPacket.packet.canBuffer.canDataFields.ctrl1.value = 1;
+				for (int i = 0; i < 8; i++)
+				{
+					canPacket.packet.canBuffer.canDataFields.ctrl1.bit[i] = configs.sensors[i].enable;
+				}
 
 				xQueueSendToBack(queue_can_sendHandle, &canPacket , 0);
 				break;
@@ -80,10 +84,10 @@ void SendCAN_MSG(void *argument)
 	{
 		// conseguiu tirar da fila
 
-		TxHeader.StdId             = canMsg.packet.canID;      // ID do dispositivo
-		TxHeader.RTR               = CAN_RTR_DATA;       		//(Remote Transmission Request) especifica Remote Fraame ou Data Frame.
-		TxHeader.IDE               = CAN_ID_STD;    			//define o tipo de id (standard ou extended
-		TxHeader.DLC               = CAN_SIZE;      			//Tamanho do pacote 0 - 8 bytes
+		TxHeader.StdId             = canMsg.packet.canID;
+		TxHeader.RTR               = CAN_RTR_DATA;
+		TxHeader.IDE               = CAN_ID_STD;
+		TxHeader.DLC               = CAN_SIZE;
 		TxHeader.TransmitGlobalTime = DISABLE;
 		int status = HAL_CAN_AddTxMessage (&hcan1, &TxHeader, canMsg.packet.canBuffer.canData, &TxMailbox);
 		if(status)
@@ -133,8 +137,8 @@ void sendCanMsg_test(int delay)
 {
 	  uint8_t tx[7] = {1,2,3,4,5,6,7};
 	  TxHeader.StdId             = 0x0;     // ID do dispositivo
-	  TxHeader.RTR               = CAN_RTR_DATA;       //(Remote Transmission Request) especifica Remote Fraame ou Data Frame.
-	  TxHeader.IDE               = CAN_ID_STD;    //define o tipo de id (standard ou extended
+	  TxHeader.RTR               = CAN_RTR_DATA;       //(Remote Transmission Request) especifica Remote Frame ou Data Frame.
+	  TxHeader.IDE               = CAN_ID_STD;    //define o tipo de id (standard ou extended)
 	  TxHeader.DLC               = 7;      //Tamanho do pacote 0 - 8 bytes
 	  TxHeader.TransmitGlobalTime = DISABLE;
 

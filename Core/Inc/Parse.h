@@ -64,18 +64,18 @@ typedef struct control
 typedef struct candata
 {
 	union Ctrl0
-	{
-		controlBit controlBits;
-		uint8_t value;
-	}ctrl0;
+		{
+			bool bit[8];
+			uint8_t value;
+		}ctrl0;
 
-	union ctrl1
-	{
-		controlBit controlBits;
-		uint8_t value;
-	}ctrl1;
+		union ctrl1
+		{
+			bool bit[8];
+			uint8_t value;
+		}ctrl1;
 
-	uint8_t data [CAN_SIZE - CAN_HEADER];
+		uint8_t data [CAN_SIZE - CAN_HEADER];
 }CanData;
 
 typedef union CANPACKET

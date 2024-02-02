@@ -77,26 +77,23 @@ int module_cfg_init(void)
 	configs.boardID = 1;
 	configs.enable = true;
 
-	configs.sensors[0].enable = true;
-	configs.sensors[1].enable = true;
-	configs.sensors[2].enable = true;
-	configs.sensors[3].enable = true;
+	for (int i = 0; i < SENSOR_NUMBERS; i++)
+	{
+		configs.sensors[i].enable = true;
+	}
 
-	configs.inputs[0].enable = true;
-	configs.inputs[0].inverted = false;
-	configs.inputs[0].debouncingTime = 5;
+	for (int i = 0; i < INPUT_NUMBERS; i++)
+	{
+		configs.inputs[0].enable = true;
+		configs.inputs[0].inverted = false;
+		configs.inputs[0].debouncingTime = 5;
+	}
 
-	configs.inputs[1].enable = true;
-	configs.inputs[1].inverted = false;
-	configs.inputs[1].debouncingTime = 5;
+	for (int i = 0; i < OUTPUT_NUMBERS; i++)
+	{
+		configs.outputs[2].enable = true;
+	}
 
-	configs.inputs[2].enable = true;
-	configs.inputs[2].inverted = false;
-	configs.inputs[2].debouncingTime = 5;
-
-	configs.inputs[3].enable = true;
-	configs.inputs[3].inverted = false;
-	configs.inputs[3].debouncingTime = 5;
 
 	return result;
 }

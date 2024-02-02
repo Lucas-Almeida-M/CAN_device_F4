@@ -12,7 +12,7 @@
 #include "stdint.h"
 
 
-#define SENSOR_NUMBERS 4
+#define SENSOR_NUMBERS 8
 #define INPUT_NUMBERS  4
 #define OUTPUT_NUMBERS 4
 
@@ -28,7 +28,7 @@ typedef struct _inputsCfg
 {
 	bool enable;
 	bool inverted;
-	uint16_t debouncingTime; // problema - existe apenas 3 timers, sendo necessario um pra cada tempo de debouncing
+	uint16_t debouncingTime;
 
 
 }inputsCfg;
