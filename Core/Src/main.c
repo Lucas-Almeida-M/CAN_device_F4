@@ -111,9 +111,14 @@ int main(void)
   MX_CAN1_Init();
   MX_ADC1_Init();
   MX_TIM2_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim2);
-
+  __HAL_TIM_CLEAR_IT(&htim3 ,TIM_IT_UPDATE);
+  HAL_TIM_Base_Start_IT(&htim3);
+  configs.sensors[0].enable = true;
+  configs.sensors[1].enable = true;
+  configs.sensors[2].enable = true;
   //	HAL_ADCEx_Calibration_Start(&hadc);
   //	HAL_ADC_Start_DMA(&hadc, &adcint, 3);
   /* USER CODE END 2 */
@@ -262,14 +267,14 @@ void calculate_Phase(SensorData *data)
 
 void fill_data(CanPacket *message, MeanValues values)
 {
-	message->packet.canBuffer.canDataFields.data[0] = (uint8_t)( ( (uint16_t)values.meanRMS >> 8) & 0xFF);
-	message->packet.canBuffer.canDataFields.data[1] = (uint8_t)(   (uint16_t)values.meanRMS & 0xFF );
+	message->canDataFields.data[0] = (uint8_t)( ( (uint16_t)values.meanRMS >> 8) & 0xFF);
+	message->canDataFields.data[1] = (uint8_t)(   (uint16_t)values.meanRMS & 0xFF );
 
-	message->packet.canBuffer.canDataFields.data[2] = (uint8_t)( ( (uint16_t)values.meanPhase >> 8) & 0xFF);
-	message->packet.canBuffer.canDataFields.data[3] = (uint8_t)(   (uint16_t)values.meanPhase & 0xFF );
+	message->canDataFields.data[2] = (uint8_t)( ( (uint16_t)values.meanPhase >> 8) & 0xFF);
+	message->canDataFields.data[3] = (uint8_t)(   (uint16_t)values.meanPhase & 0xFF );
 
-	message->packet.canBuffer.canDataFields.data[4] = (uint8_t)( ( (uint16_t)values.meanFreq >> 8) & 0xFF);
-	message->packet.canBuffer.canDataFields.data[5] = (uint8_t)(   (uint16_t)values.meanFreq & 0xFF );
+	message->canDataFields.data[4] = (uint8_t)( ( (uint16_t)values.meanFreq >> 8) & 0xFF);
+	message->canDataFields.data[5] = (uint8_t)(   (uint16_t)values.meanFreq & 0xFF );
 
 	// teste correto da conversao para 2 uint8_t e ao contrario
 //    uint16_t testeint;
@@ -287,9 +292,9 @@ void send_data_to_queue(MeanValues values[])
 
 	for (int i = 0; i < 3; i++)
 	{
-		message.packet.canID = DEVICE_ID;
-		message.packet.canBuffer.canDataFields.ctrl0.value = 0; //revisar
-		message.packet.canBuffer.canDataFields.ctrl1.value = i; //numero do sensor
+		message.canID = DEVICE_ID;
+		message.canDataFields.ctrl0 = 0; //revisar
+		message.canDataFields.ctrl1 = i; //numero do sensor
 
 		fill_data(&message, values[i]); // a cada tensao (a b c) envia uma mensagem can com rms, fase e freq
 
@@ -370,6 +375,25 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   			}
   		}
   	}
+  if(htim->Instance==TIM3)
+  {
+	  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	  CanPacket canMsg = {0};
+
+	  canMsg.canID = DEVICE_ID;
+	  canMsg.canDataFields.ctrl0 = 1;
+	  canMsg.canDataFields.ctrl1 = 7;
+	  canMsg.canDataFields.data[0] = 168;
+	  canMsg.canDataFields.data[1] = 186;
+	  canMsg.canDataFields.data[2] = 168;
+	  canMsg.canDataFields.data[3] = 188;
+	  canMsg.canDataFields.data[4] = 168;
+	  canMsg.canDataFields.data[5] = 189;
+
+
+	  xQueueSendToBackFromISR(queue_can_sendHandle, &canMsg, &xHigherPriorityTaskWoken);
+
+  }
   /* USER CODE END Callback 1 */
 }
 

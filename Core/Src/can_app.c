@@ -38,7 +38,7 @@ void ReceiveCAN_MSG(void *argument)
 	if (xStatus == pdPASS)
 	{
 		// conseguiu tirar da fila
-		switch (canMSG.packet.canBuffer.canDataFields.ctrl0.value)
+		switch (canMSG.canDataFields.ctrl0)
 		{
 			case CONFIG:
 
@@ -48,11 +48,11 @@ void ReceiveCAN_MSG(void *argument)
 				break;
 			case SYNC:
 				CanPacket canPacket = {0};
-				canPacket.packet.canID = DEVICE_ID;
-				canPacket.packet.canBuffer.canDataFields.ctrl0.value = SYNC;
+				canPacket.canID = DEVICE_ID;
+				canPacket.canDataFields.ctrl0 = SYNC;
 				for (int i = 0; i < 8; i++)
 				{
-					canPacket.packet.canBuffer.canDataFields.ctrl1.bit[i] = configs.sensors[i].enable;
+					canPacket.canDataFields.ctrl1 = canPacket.canDataFields.ctrl1 | (configs.sensors[i].enable << (i));
 				}
 
 				xQueueSendToBack(queue_can_sendHandle, &canPacket , 0);
@@ -76,6 +76,7 @@ void SendCAN_MSG(void *argument)
 {
   /* USER CODE BEGIN SendCAN_MSG */
 	CanPacket canMsg = {0};
+	uint8_t buffer[8];
   /* Infinite loop */
   for(;;)
   {
@@ -84,12 +85,14 @@ void SendCAN_MSG(void *argument)
 	{
 		// conseguiu tirar da fila
 
-		TxHeader.StdId             = canMsg.packet.canID;
+		TxHeader.StdId             = canMsg.canID;
 		TxHeader.RTR               = CAN_RTR_DATA;
 		TxHeader.IDE               = CAN_ID_STD;
 		TxHeader.DLC               = CAN_SIZE;
 		TxHeader.TransmitGlobalTime = DISABLE;
-		int status = HAL_CAN_AddTxMessage (&hcan1, &TxHeader, canMsg.packet.canBuffer.canData, &TxMailbox);
+
+		memcpy(buffer , &canMsg.canDataFields , sizeof(buffer));
+		int status = HAL_CAN_AddTxMessage (&hcan1, &TxHeader, buffer, &TxMailbox);
 		if(status)
 		{
 			Error_Handler();
@@ -112,7 +115,7 @@ void SendCAN_MSG(void *argument)
  * @param hcan
  */
 
-int receivedtt = 0;
+
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
 
@@ -120,10 +123,9 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 	CanPacket canPacket = { 0 } ;
 
 	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, canRX);
-	canPacket.packet.canID = RxHeader.StdId;
-	memcpy(&canPacket.packet.canBuffer, canRX, sizeof(canRX));
+	canPacket.canID = RxHeader.StdId;
+	memcpy(&canPacket.canDataFields, canRX, sizeof(canRX));
 	xQueueSendToBackFromISR(queue_can_receiveHandle, &canPacket, &xHigherPriorityTaskWoken);
-	receivedtt++;
 
 	HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
 

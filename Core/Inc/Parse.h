@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define ID 0x05
+#define ID 0x02
 
 #define STD_ID  0
 #define EXT_ID  1
@@ -49,49 +49,30 @@ enum MessageType
 };
 
 
-typedef struct control
-{
-	bool bit0 : 1;
-	bool bit1 : 1;
-	bool bit2 : 1;
-	bool bit3 : 1;
-	bool bit4 : 1;
-	bool bit5 : 1;
-	bool bit6 : 1;
-	bool bit7 : 1;
-}controlBit;
+//typedef struct control
+//{
+//	bool bit0 : 1;
+//	bool bit1 : 1;
+//	bool bit2 : 1;
+//	bool bit3 : 1;
+//	bool bit4 : 1;
+//	bool bit5 : 1;
+//	bool bit6 : 1;
+//	bool bit7 : 1;
+//}controlBit;
 
 typedef struct candata
 {
-	union Ctrl0
-		{
-			bool bit[8];
-			uint8_t value;
-		}ctrl0;
-
-		union ctrl1
-		{
-			bool bit[8];
-			uint8_t value;
-		}ctrl1;
-
-		uint8_t data [CAN_SIZE - CAN_HEADER];
+	uint8_t ctrl0;
+	uint8_t ctrl1;
+	uint8_t data [CAN_SIZE - CAN_HEADER];
 }CanData;
 
-typedef union CANPACKET
+
+typedef struct
 {
-	uint8_t buffer[CAN_SIZE + 1];
-	struct
-	{
-		uint8_t canID;
-		union canbuf
-		{
-			CanData canDataFields;
-			uint8_t canData[8];
-		}canBuffer;
-
-	}packet;
-
+	uint8_t canID;
+	CanData canDataFields;
 } CanPacket;
 
 
