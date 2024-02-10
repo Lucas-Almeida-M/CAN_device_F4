@@ -18,6 +18,7 @@ extern uint32_t TxMailbox;
 extern osMessageQId queue_can_sendHandle;
 extern osMessageQId queue_can_receiveHandle;
 extern module_cfg configs;
+bool en = 1;
 
 
 
@@ -37,28 +38,37 @@ void ReceiveCAN_MSG(void *argument)
 	BaseType_t xStatus = xQueueReceive(queue_can_receiveHandle, &canMSG, 0);
 	if (xStatus == pdPASS)
 	{
+		CanPacket canPacket = {0};
 		// conseguiu tirar da fila
-		switch (canMSG.canDataFields.ctrl0)
-		{
-			case CONFIG:
 
-				break;
-			case DATA:
+			switch (canMSG.canDataFields.ctrl0)
+			{
+				case CONFIG:
+					module_cfg cfg = {0};
+					for (int i = 0; i < 8; i++)
+					{
+						cfg.sensors[i].enable = (bool)(canMSG.canDataFields.data[0] & (1 << i));
+					}
+					apply_config(cfg);
+					break;
+				case DATA:
 
-				break;
-			case SYNC:
-				CanPacket canPacket = {0};
-				canPacket.canID = DEVICE_ID;
-				canPacket.canDataFields.ctrl0 = SYNC;
-				for (int i = 0; i < 8; i++)
-				{
-					canPacket.canDataFields.ctrl1 = canPacket.canDataFields.ctrl1 | (configs.sensors[i].enable << (i));
-				}
+					break;
+				case SYNC:
+					canPacket.canID = DEVICE_ID;
+					canPacket.canDataFields.ctrl0 = SYNC;
+					for (int i = 0; i < 8; i++)
+					{
+						canPacket.canDataFields.ctrl1 = canPacket.canDataFields.ctrl1 | (configs.sensors[i].enable << (i));
+					}
 
-				xQueueSendToBack(queue_can_sendHandle, &canPacket , 0);
-				break;
+					xQueueSendToBack(queue_can_sendHandle, &canPacket , 0);
+					break;
+				case REBOOT:
+					HAL_Delay(100);
+					NVIC_SystemReset();
 
-		}
+			}
 
 	}
     osDelay(1);

@@ -35,6 +35,7 @@ extern "C" {
 #include "string.h"
 #include "stdio.h"
 #include "math.h"
+#include "flash_sector.h"
 
 //#include "queue.h"
 //#include "lfs.h"

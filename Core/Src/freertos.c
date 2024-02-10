@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+extern count;
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -128,11 +128,11 @@ void MX_FREERTOS_Init(void) {
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of ReceiveCAN_MSG_ */
-  osThreadDef(ReceiveCAN_MSG_, ReceiveCAN_MSG, osPriorityNormal, 0, 128);
+  osThreadDef(ReceiveCAN_MSG_, ReceiveCAN_MSG, osPriorityNormal, 0, 1024);
   ReceiveCAN_MSG_Handle = osThreadCreate(osThread(ReceiveCAN_MSG_), NULL);
 
   /* definition and creation of SendCAN_MSG_ */
-  osThreadDef(SendCAN_MSG_, SendCAN_MSG, osPriorityNormal, 0, 128);
+  osThreadDef(SendCAN_MSG_, SendCAN_MSG, osPriorityNormal, 0, 512);
   SendCAN_MSG_Handle = osThreadCreate(osThread(SendCAN_MSG_), NULL);
 
   /* definition and creation of processDatatask */
@@ -155,10 +155,12 @@ void MX_FREERTOS_Init(void) {
 __weak void StartDefaultTask(void const * argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
+osDelay(1000);
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	count++;
+    osDelay(1000);
   }
   /* USER CODE END StartDefaultTask */
 }

@@ -70,30 +70,75 @@ uint16_t bufferTensaoVCD[64] = {166, 110, 65, 32, 10, 0, 2, 16, 42, 79, 127, 187
 								2449, 2471, 2481, 2479, 2465, 2439, 2402, 2353, 2294, 2225, 2146, 2059, 1963, 1861, 1753,
 								1639, 1522, 1402, 1281, 1159, 1038, 919, 803, 692, 585, 485, 392, 307, 232};
 
-int module_cfg_init(void)
+//uint32_t data[10] = {1111,2222,3333,4444,5555,6666,7777,8888,9999,1010};
+//uint32_t Rx_Data[10] = {0};
+//char string [64] = {0};
+//Flash_Write_Data(0x08060000 , (uint32_t *)data, 10);
+//Flash_Read_Data (0x08060000 , Rx_Data,          10);
+//Convert_To_Str(Rx_Data, string);
+
+void module_cfg_init(void)
 {
-	int result = 1;
-	//TODO: implementar funcao para ler variaveis salvas na flash
-	configs.boardID = 1;
-	configs.enable = true;
-
-	for (int i = 0; i < SENSOR_NUMBERS; i++)
+	uint32_t savedConfig[TOTAL_CFG_BYTES] = {0};
+	Flash_Read_Data (CFG_SECTOR_ADDRESS , savedConfig, TOTAL_CFG_BYTES);
+	if ( (savedConfig[HEADER_0] == 2)   &&
+		 (savedConfig[HEADER_1] == 200) &&
+		 (savedConfig[HEADER_2] == 230) &&
+		 (savedConfig[HEADER_3] == 165)    ) // aplly saved config
 	{
-		configs.sensors[i].enable = true;
-	}
+		configs.sensors[0].enable = (bool) savedConfig[SENSOR_0_ENABLE];
+		configs.sensors[1].enable = (bool) savedConfig[SENSOR_1_ENABLE];
+		configs.sensors[2].enable = (bool) savedConfig[SENSOR_2_ENABLE];
+		configs.sensors[3].enable = (bool) savedConfig[SENSOR_3_ENABLE];
+		configs.sensors[4].enable = (bool) savedConfig[SENSOR_4_ENABLE];
+		configs.sensors[5].enable = (bool) savedConfig[SENSOR_5_ENABLE];
+		configs.sensors[6].enable = (bool) savedConfig[SENSOR_6_ENABLE];
+		configs.sensors[7].enable = (bool) savedConfig[SENSOR_7_ENABLE];
 
-	for (int i = 0; i < INPUT_NUMBERS; i++)
+	}
+	else // default
 	{
-		configs.inputs[0].enable = true;
-		configs.inputs[0].inverted = false;
-		configs.inputs[0].debouncingTime = 5;
-	}
+		configs.boardID = 1;
+		configs.enable = true;
 
-	for (int i = 0; i < OUTPUT_NUMBERS; i++)
+		for (int i = 0; i < SENSOR_NUMBERS; i++)
+		{
+			configs.sensors[i].enable = true;
+		}
+
+		for (int i = 0; i < INPUT_NUMBERS; i++)
+		{
+			configs.inputs[0].enable = true;
+			configs.inputs[0].inverted = false;
+			configs.inputs[0].debouncingTime = 5;
+		}
+
+		for (int i = 0; i < OUTPUT_NUMBERS; i++)
+		{
+			configs.outputs[2].enable = true;
+		}
+	}
+}
+
+void apply_config(module_cfg newConfig)
+{
+	//copy de cfg received to the cfg in ram
+	memcpy(&configs, &newConfig, sizeof(configs));
+
+	//save the new data in flash
+	uint32_t saveBuffer[64]  = {0};
+
+	uint32_t headerBuff[4] = {2,200,230,165};
+	uint32_t cfgBuff[8] = {0};
+	for (int i = 0; i < 8; i++)
 	{
-		configs.outputs[2].enable = true;
+		cfgBuff[i] = configs.sensors[i].enable;
 	}
+	memcpy(saveBuffer, headerBuff, sizeof(headerBuff) );
+	memcpy(saveBuffer + ( sizeof(headerBuff) / sizeof(uint32_t) ), cfgBuff, sizeof(cfgBuff) );
 
-
-	return result;
+	Flash_Write_Data(CFG_SECTOR_ADDRESS , (uint32_t *)saveBuffer, TOTAL_CFG_BYTES); // save the cfg
+	uint32_t savedConfig[TOTAL_CFG_BYTES] = {0};
+	Flash_Read_Data (CFG_SECTOR_ADDRESS , savedConfig, TOTAL_CFG_BYTES);
+	int a = 25;
 }

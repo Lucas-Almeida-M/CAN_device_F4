@@ -33,7 +33,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+int count = 0;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -116,11 +116,14 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim2);
   __HAL_TIM_CLEAR_IT(&htim3 ,TIM_IT_UPDATE);
   HAL_TIM_Base_Start_IT(&htim3);
-  configs.sensors[0].enable = true;
-  configs.sensors[1].enable = true;
-  configs.sensors[2].enable = true;
+  module_cfg_init();
+//  configs.sensors[0].enable = false;
+//  configs.sensors[1].enable = true;
+//  configs.sensors[2].enable = false;
   //	HAL_ADCEx_Calibration_Start(&hadc);
   //	HAL_ADC_Start_DMA(&hadc, &adcint, 3);
+
+
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
@@ -196,6 +199,29 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void StartDefaultTask(void const * argument)
+{
+  /* USER CODE BEGIN StartDefaultTask */
+osDelay(1000);
+CanPacket canTeste = {0};
+  /* Infinite loop */
+  for(;;)
+  {
+
+    osDelay(1000);
+    canTeste.canID = 1;
+    canTeste.canDataFields.ctrl0 = CONFIG;
+    for (int i = 0; i < 8; i++)
+    {
+    	canTeste.canDataFields.data[0] |=  (configs.sensors[i].enable << i);
+    }
+    xQueueSendToBack(queue_can_sendHandle, &canTeste , 0);
+  }
+  /* USER CODE END StartDefaultTask */
+}
+
+
 void Process_data_task(void *argument)
 {
   /* USER CODE BEGIN Process_data_task */
@@ -355,45 +381,45 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-  if(htim->Instance==TIM2)
-  	{
-  		if (adc_count < SAMPLES_PER_CYCLE)
-  		{
-  			sensorData.sensorData_buff[VA][adc_count] = bufferTensaoVAD[adc_count];
-  			sensorData.sensorData_buff[VB][adc_count] = bufferTensaoVBD[adc_count];
-  			sensorData.sensorData_buff[VC][adc_count] = bufferTensaoVCD[adc_count];
-  			adc_count++;
-  			if (adc_count == 64)
-  			{
-  				BaseType_t xStatus = xQueueSendToBackFromISR(queue_process_dataHandle, &sensorData.sensorData_buff, 0);
-  				if (xStatus != pdPASS)
-  				{
-                    uint8_t a = 6;
-  				}
-  				aux = 1;
-  				adc_count = 0;
-  			}
-  		}
-  	}
-  if(htim->Instance==TIM3)
-  {
-	  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	  CanPacket canMsg = {0};
-
-	  canMsg.canID = DEVICE_ID;
-	  canMsg.canDataFields.ctrl0 = 1;
-	  canMsg.canDataFields.ctrl1 = 7;
-	  canMsg.canDataFields.data[0] = 168;
-	  canMsg.canDataFields.data[1] = 186;
-	  canMsg.canDataFields.data[2] = 168;
-	  canMsg.canDataFields.data[3] = 188;
-	  canMsg.canDataFields.data[4] = 168;
-	  canMsg.canDataFields.data[5] = 189;
-
-
-	  xQueueSendToBackFromISR(queue_can_sendHandle, &canMsg, &xHigherPriorityTaskWoken);
-
-  }
+//  if(htim->Instance==TIM2)
+//  	{
+//  		if (adc_count < SAMPLES_PER_CYCLE)
+//  		{
+//  			sensorData.sensorData_buff[VA][adc_count] = bufferTensaoVAD[adc_count];
+//  			sensorData.sensorData_buff[VB][adc_count] = bufferTensaoVBD[adc_count];
+//  			sensorData.sensorData_buff[VC][adc_count] = bufferTensaoVCD[adc_count];
+//  			adc_count++;
+//  			if (adc_count == 64)
+//  			{
+//  				BaseType_t xStatus = xQueueSendToBackFromISR(queue_process_dataHandle, &sensorData.sensorData_buff, 0);
+//  				if (xStatus != pdPASS)
+//  				{
+//                    uint8_t a = 6;
+//  				}
+//  				aux = 1;
+//  				adc_count = 0;
+//  			}
+//  		}
+//  	}
+//  if(htim->Instance==TIM3)
+//  {
+//	  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+//	  CanPacket canMsg = {0};
+//
+//	  canMsg.canID = DEVICE_ID;
+//	  canMsg.canDataFields.ctrl0 = 1;
+//	  canMsg.canDataFields.ctrl1 = 7;
+//	  canMsg.canDataFields.data[0] = 168;
+//	  canMsg.canDataFields.data[1] = 186;
+//	  canMsg.canDataFields.data[2] = 168;
+//	  canMsg.canDataFields.data[3] = 188;
+//	  canMsg.canDataFields.data[4] = 168;
+//	  canMsg.canDataFields.data[5] = 189;
+//
+//
+//	  xQueueSendToBackFromISR(queue_can_sendHandle, &canMsg, &xHigherPriorityTaskWoken);
+//
+//  }
   /* USER CODE END Callback 1 */
 }
 

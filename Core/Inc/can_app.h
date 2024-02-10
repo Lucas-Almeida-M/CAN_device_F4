@@ -10,5 +10,6 @@
 
 #include "can.h"
 #include "Parse.h"
+#include "module_cfg.h"
 
 #endif /* INC_CAN_APP_H_ */

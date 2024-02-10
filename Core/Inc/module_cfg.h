@@ -10,13 +10,16 @@
 
 #include "stdbool.h"
 #include "stdint.h"
+#include "stdio.h"
+#include "string.h"
+#include "flash_sector.h"
 
 
 #define SENSOR_NUMBERS 8
 #define INPUT_NUMBERS  4
 #define OUTPUT_NUMBERS 4
 
-int module_cfg_init(void);
+
 
 typedef struct _sensorsCfg
 {
@@ -51,5 +54,29 @@ typedef struct _module_cfg
 }module_cfg;
 
 
+#define CFG_SECTOR_ADDRESS 0x08060000
+#define HEADER_LENGTH 4 // 4 bites header
+
+enum SavedCFG
+{
+	HEADER_0		= 0,
+	HEADER_1 		= 1,
+	HEADER_2 		= 2,
+	HEADER_3 		= 3,
+	SENSOR_0_ENABLE = 4,
+	SENSOR_1_ENABLE = 5,
+	SENSOR_2_ENABLE = 6,
+	SENSOR_3_ENABLE = 7,
+	SENSOR_4_ENABLE = 8,
+	SENSOR_5_ENABLE = 9,
+	SENSOR_6_ENABLE = 10,
+	SENSOR_7_ENABLE = 11,
+	TOTAL_CFG_BYTES
+
+};
+
+
+void module_cfg_init(void);
+void apply_config(module_cfg newConfig);
 
 #endif /* INC_MODULE_CFG_H_ */
