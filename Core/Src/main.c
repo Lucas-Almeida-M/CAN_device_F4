@@ -52,7 +52,7 @@ int count = 0;
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint16_t adcint[4] = {0};
+uint16_t adcint[8] = {0};
 extern module_cfg configs;
 bool aux = 0;
 uint16_t adc_count = 0;
@@ -65,6 +65,7 @@ extern osMessageQId queue_can_sendHandle;
 extern  osMessageQId queue_process_dataHandle;
 SignalQ sgnalQual[3] = {0};
 SensorData sensorData;
+uint16_t sensorValues[8] = {0};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -114,14 +115,9 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim2);
-  __HAL_TIM_CLEAR_IT(&htim3 ,TIM_IT_UPDATE);
-  HAL_TIM_Base_Start_IT(&htim3);
   module_cfg_init();
-//  configs.sensors[0].enable = false;
-//  configs.sensors[1].enable = true;
-//  configs.sensors[2].enable = false;
-  //	HAL_ADCEx_Calibration_Start(&hadc);
-  //	HAL_ADC_Start_DMA(&hadc, &adcint, 3);
+//  HAL_ADCEx_Calibration_Start(&hadc1);
+  HAL_ADC_Start_DMA(&hadc1, adcint, 8);
 
 
   /* USER CODE END 2 */
@@ -203,20 +199,23 @@ void SystemClock_Config(void)
 void StartDefaultTask(void const * argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
-osDelay(1000);
+osDelay(3000);
+__HAL_TIM_CLEAR_IT(&htim3 ,TIM_IT_UPDATE);
+ HAL_TIM_Base_Start_IT(&htim3);
 CanPacket canTeste = {0};
   /* Infinite loop */
   for(;;)
   {
 
-    osDelay(1000);
-    canTeste.canID = 1;
-    canTeste.canDataFields.ctrl0 = CONFIG;
-    for (int i = 0; i < 8; i++)
-    {
-    	canTeste.canDataFields.data[0] |=  (configs.sensors[i].enable << i);
-    }
-    xQueueSendToBack(queue_can_sendHandle, &canTeste , 0);
+//    osDelay(1000);
+//    canTeste.canID = 1;
+//    canTeste.canDataFields.ctrl0 = CONFIG;
+//    for (int i = 0; i < 8; i++)
+//    {
+//    	canTeste.canDataFields.data[0] |=  (configs.sensors[i].enable << i);
+//    }
+//    xQueueSendToBack(queue_can_sendHandle, &canTeste , 0);
+	  osDelay(500);
   }
   /* USER CODE END StartDefaultTask */
 }
@@ -257,8 +256,6 @@ void Process_data_task(void *argument)
   }
   /* USER CODE END Process_data_task */
 }
-
-
 
 
 void calculate_analog(Data *data, SensorData *sensorData)
@@ -381,26 +378,26 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-//  if(htim->Instance==TIM2)
-//  	{
-//  		if (adc_count < SAMPLES_PER_CYCLE)
-//  		{
-//  			sensorData.sensorData_buff[VA][adc_count] = bufferTensaoVAD[adc_count];
-//  			sensorData.sensorData_buff[VB][adc_count] = bufferTensaoVBD[adc_count];
-//  			sensorData.sensorData_buff[VC][adc_count] = bufferTensaoVCD[adc_count];
-//  			adc_count++;
-//  			if (adc_count == 64)
-//  			{
-//  				BaseType_t xStatus = xQueueSendToBackFromISR(queue_process_dataHandle, &sensorData.sensorData_buff, 0);
-//  				if (xStatus != pdPASS)
-//  				{
-//                    uint8_t a = 6;
-//  				}
-//  				aux = 1;
-//  				adc_count = 0;
-//  			}
-//  		}
-//  	}
+  if(htim->Instance==TIM2)
+  {
+	  if (adc_count < SAMPLES_PER_CYCLE)
+	  {
+		sensorData.sensorData_buff[VA][adc_count] = bufferTensaoVAD[adc_count];
+		sensorData.sensorData_buff[VB][adc_count] = bufferTensaoVBD[adc_count];
+		sensorData.sensorData_buff[VC][adc_count] = bufferTensaoVCD[adc_count];
+		adc_count++;
+		if (adc_count == 64)
+		{
+			BaseType_t xStatus = xQueueSendToBackFromISR(queue_process_dataHandle, &sensorData.sensorData_buff, 0);
+			if (xStatus != pdPASS)
+			{
+				uint8_t a = 6;
+			}
+			aux = 1;
+			adc_count = 0;
+		}
+	  }
+  }
 //  if(htim->Instance==TIM3)
 //  {
 //	  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -420,6 +417,41 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 //	  xQueueSendToBackFromISR(queue_can_sendHandle, &canMsg, &xHigherPriorityTaskWoken);
 //
 //  }
+  if (htim->Instance == TIM3)
+  {
+      BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+      CanPacket canMSG = {0};
+      canMSG.canID = DEVICE_ID;
+      canMSG.canDataFields.ctrl0 = DATA;
+
+      int countMSG = 0;
+      int dataIdx = 0;
+
+      for (int sensorIdx = 0; sensorIdx < SENSOR_NUMBERS; sensorIdx++)
+      {
+          sensorValues[sensorIdx] = adcint[sensorIdx];
+
+          if (configs.sensors[sensorIdx].enable)
+          {
+              canMSG.canDataFields.ctrl1 |= (1 << sensorIdx);
+
+              canMSG.canDataFields.data[dataIdx] = (uint8_t)((sensorValues[sensorIdx] >> 8) & 0xFF);
+              canMSG.canDataFields.data[dataIdx + 1] = (uint8_t)(sensorValues[sensorIdx] & 0xFF);
+
+              countMSG++;
+              dataIdx += 2;
+          }
+
+          if (countMSG == 3 || (sensorIdx == 7 && countMSG != 0))
+          {
+              xQueueSendToBackFromISR(queue_can_sendHandle, &canMSG, &xHigherPriorityTaskWoken);
+              canMSG.canDataFields.ctrl1 = 0;
+              countMSG = 0;
+              dataIdx = 0;
+          }
+      }
+  }
+
   /* USER CODE END Callback 1 */
 }
 

@@ -77,6 +77,6 @@ enum SavedCFG
 
 
 void module_cfg_init(void);
-void apply_config(module_cfg newConfig);
+int apply_config(module_cfg newConfig);
 
 #endif /* INC_MODULE_CFG_H_ */

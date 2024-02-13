@@ -49,7 +49,18 @@ void ReceiveCAN_MSG(void *argument)
 					{
 						cfg.sensors[i].enable = (bool)(canMSG.canDataFields.data[0] & (1 << i));
 					}
-					apply_config(cfg);
+
+					canPacket.canID = DEVICE_ID;
+					canPacket.canDataFields.ctrl0 = CONFIG;
+					if (apply_config(cfg))
+					{
+						canPacket.canDataFields.ctrl1 = 1;
+					}
+					else
+					{
+						canPacket.canDataFields.ctrl1 = 0;
+					}
+					xQueueSendToBack(queue_can_sendHandle, &canPacket , 0);
 					break;
 				case DATA:
 

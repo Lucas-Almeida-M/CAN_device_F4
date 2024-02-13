@@ -120,8 +120,9 @@ void module_cfg_init(void)
 	}
 }
 
-void apply_config(module_cfg newConfig)
+int apply_config(module_cfg newConfig)
 {
+	int result = 0;
 	//copy de cfg received to the cfg in ram
 	memcpy(&configs, &newConfig, sizeof(configs));
 
@@ -140,5 +141,9 @@ void apply_config(module_cfg newConfig)
 	Flash_Write_Data(CFG_SECTOR_ADDRESS , (uint32_t *)saveBuffer, TOTAL_CFG_BYTES); // save the cfg
 	uint32_t savedConfig[TOTAL_CFG_BYTES] = {0};
 	Flash_Read_Data (CFG_SECTOR_ADDRESS , savedConfig, TOTAL_CFG_BYTES);
-	int a = 25;
+	if (!memcmp(saveBuffer, savedConfig,TOTAL_CFG_BYTES))
+	{
+		result = 1;
+	}
+	return result;
 }
