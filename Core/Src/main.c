@@ -206,15 +206,6 @@ CanPacket canTeste = {0};
   /* Infinite loop */
   for(;;)
   {
-
-//    osDelay(1000);
-//    canTeste.canID = 1;
-//    canTeste.canDataFields.ctrl0 = CONFIG;
-//    for (int i = 0; i < 8; i++)
-//    {
-//    	canTeste.canDataFields.data[0] |=  (configs.sensors[i].enable << i);
-//    }
-//    xQueueSendToBack(queue_can_sendHandle, &canTeste , 0);
 	  osDelay(500);
   }
   /* USER CODE END StartDefaultTask */

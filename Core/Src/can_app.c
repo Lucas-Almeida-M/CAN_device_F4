@@ -18,8 +18,6 @@ extern uint32_t TxMailbox;
 extern osMessageQId queue_can_sendHandle;
 extern osMessageQId queue_can_receiveHandle;
 extern module_cfg configs;
-bool en = 1;
-
 
 
 /***
@@ -79,8 +77,9 @@ void ReceiveCAN_MSG(void *argument)
 					HAL_Delay(100);
 					NVIC_SystemReset();
 
+				default:
+					break;
 			}
-
 	}
     osDelay(1);
   }
@@ -127,16 +126,12 @@ void SendCAN_MSG(void *argument)
 }
 
 
-
-
 /***
  * @fn void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef*)
  * @brief driver function that receives can messages from CAN FIFO
  *
  * @param hcan
  */
-
-
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
 
@@ -152,17 +147,13 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 
 }
 
-
-
-
-
 void sendCanMsg_test(int delay)
 {
-	  uint8_t tx[7] = {1,2,3,4,5,6,7};
-	  TxHeader.StdId             = 0x0;     // ID do dispositivo
-	  TxHeader.RTR               = CAN_RTR_DATA;       //(Remote Transmission Request) especifica Remote Frame ou Data Frame.
-	  TxHeader.IDE               = CAN_ID_STD;    //define o tipo de id (standard ou extended)
-	  TxHeader.DLC               = 7;      //Tamanho do pacote 0 - 8 bytes
+	  uint8_t tx[8] = {0,1,2,3,4,5,6,7};
+	  TxHeader.StdId             = BROADCAST;    	 // ID do dispositivo
+	  TxHeader.RTR               = CAN_RTR_DATA;     //(Remote Transmission Request) especifica Remote Frame ou Data Frame.
+	  TxHeader.IDE               = CAN_ID_STD;    	 //define o tipo de id (standard ou extended)
+	  TxHeader.DLC               = 8;     			 //Tamanho do pacote 0 - 8 bytes
 	  TxHeader.TransmitGlobalTime = DISABLE;
 
 	  int status = HAL_CAN_AddTxMessage(&hcan, &TxHeader, tx, &TxMailbox);
