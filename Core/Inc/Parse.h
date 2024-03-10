@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+//#define NUCLEO
+//#define BLACK_PILL
 #define ID 0x02
 
 #define STD_ID  0
@@ -29,6 +31,7 @@ typedef union // Ini
 {
 
 	enum FilterIds
+
 	{
 		BROADCAST  = 0x00,
 		BOARD_F7   = 0x01,

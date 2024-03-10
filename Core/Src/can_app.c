@@ -10,7 +10,7 @@
 //#include "cmsis_os2.h"
 #include "cmsis_os.h"
 #include "queue.h"
-
+#include "debug_level.h"
 
 uint8_t canRX[CAN_SIZE] = {};
 uint8_t canTX[CAN_SIZE] = {};
@@ -18,6 +18,7 @@ extern uint32_t TxMailbox;
 extern osMessageQId queue_can_sendHandle;
 extern osMessageQId queue_can_receiveHandle;
 extern module_cfg configs;
+char CanMsgDebug [64] = {0};
 
 
 /***
@@ -37,6 +38,12 @@ void ReceiveCAN_MSG(void *argument)
 	if (xStatus == pdPASS)
 	{
 		CanPacket canPacket = {0};
+		if (DEBUG_LEVEL > NONE)
+		{
+			sprintf(CanMsgDebug, "CAN message received [ID: %d] [MT: %d] \r\n", canMSG.canID, canMSG.canDataFields.ctrl0);
+			print_debug (CanMsgDebug);
+			memset(CanMsgDebug, 0, sizeof(CanMsgDebug));
+		}
 		// conseguiu tirar da fila
 
 			switch (canMSG.canDataFields.ctrl0)
@@ -95,27 +102,33 @@ void ReceiveCAN_MSG(void *argument)
 void SendCAN_MSG(void *argument)
 {
   /* USER CODE BEGIN SendCAN_MSG */
-	CanPacket canMsg = {0};
+	CanPacket canMSG = {0};
 	uint8_t buffer[8];
   /* Infinite loop */
   for(;;)
   {
-	BaseType_t xStatus = xQueueReceive(queue_can_sendHandle, &canMsg, 0);
+	BaseType_t xStatus = xQueueReceive(queue_can_sendHandle, &canMSG, 0);
 	if (xStatus == pdPASS)
 	{
 		// conseguiu tirar da fila
 
-		TxHeader.StdId             = canMsg.canID;
+		TxHeader.StdId             = canMSG.canID;
 		TxHeader.RTR               = CAN_RTR_DATA;
 		TxHeader.IDE               = CAN_ID_STD;
 		TxHeader.DLC               = CAN_SIZE;
 		TxHeader.TransmitGlobalTime = DISABLE;
 
-		memcpy(buffer , &canMsg.canDataFields , sizeof(buffer));
+		memcpy(buffer , &canMSG.canDataFields , sizeof(buffer));
 		int status = HAL_CAN_AddTxMessage (&hcan1, &TxHeader, buffer, &TxMailbox);
 		if(status)
 		{
 			Error_Handler();
+		}
+		if (DEBUG_LEVEL > NONE)
+		{
+			sprintf(CanMsgDebug, "CAN message Sent [ID: %d] [MT: %d] \r\n", canMSG.canID, canMSG.canDataFields.ctrl0);
+			print_debug (CanMsgDebug);
+			memset(CanMsgDebug, 0, sizeof(CanMsgDebug));
 		}
 		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
 	}

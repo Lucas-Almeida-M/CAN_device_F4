@@ -23,6 +23,7 @@
 #include "can.h"
 #include "dma.h"
 #include "tim.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -52,6 +53,10 @@ int count = 0;
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+uint8_t uartRxBuffer[256] = {0};
+uint8_t uartTxBuffer[256] = {0};
+
+
 uint16_t adcint[8] = {0};
 extern module_cfg configs;
 bool aux = 0;
@@ -113,8 +118,11 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
+  MX_USART1_UART_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim2);
+  HAL_UART_Receive_IT(&huart1, uartRxBuffer, 256);
   module_cfg_init();
 //  HAL_ADCEx_Calibration_Start(&hadc1);
   HAL_ADC_Start_DMA(&hadc1, adcint, 8);
@@ -350,6 +358,17 @@ void calculate_mean(MeanValues *meanValues , SignalQ *signalQ)
 	meanValues[VC].meanPhase = sumValues[VC][1] / 60;
 	meanValues[VC].meanFreq  = sumValues[VC][2] / 60;
 }
+
+
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) // interrupação RX da serial
+{
+	HAL_UART_Transmit(&huart1, uartRxBuffer , 256, 10);
+
+
+	HAL_UART_Receive_IT(&huart1, uartRxBuffer, 256);
+}
+
 /* USER CODE END 4 */
 
 /**
