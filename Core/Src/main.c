@@ -408,25 +408,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		}
 	  }
   }
-//  if(htim->Instance==TIM3)
-//  {
-//	  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-//	  CanPacket canMsg = {0};
-//
-//	  canMsg.canID = DEVICE_ID;
-//	  canMsg.canDataFields.ctrl0 = 1;
-//	  canMsg.canDataFields.ctrl1 = 7;
-//	  canMsg.canDataFields.data[0] = 168;
-//	  canMsg.canDataFields.data[1] = 186;
-//	  canMsg.canDataFields.data[2] = 168;
-//	  canMsg.canDataFields.data[3] = 188;
-//	  canMsg.canDataFields.data[4] = 168;
-//	  canMsg.canDataFields.data[5] = 189;
-//
-//
-//	  xQueueSendToBackFromISR(queue_can_sendHandle, &canMsg, &xHigherPriorityTaskWoken);
-//
-//  }
+
   if (htim->Instance == TIM3)
   {
       BaseType_t xHigherPriorityTaskWoken = pdFALSE;
