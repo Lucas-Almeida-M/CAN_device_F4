@@ -5,7 +5,6 @@
  *      Author: lucas
  */
 #include "debug_level.h"
-//#include "parse.h"
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 #define NUCLEO

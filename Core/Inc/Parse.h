@@ -25,7 +25,7 @@ extern CAN_TxHeaderTypeDef TxHeader;
 extern CAN_RxHeaderTypeDef RxHeader;
 
 
-typedef union // Ini
+typedef union
 {
 
 	enum FilterIds

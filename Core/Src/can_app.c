@@ -7,7 +7,6 @@
 
 
 #include "can_app.h"
-//#include "cmsis_os2.h"
 #include "cmsis_os.h"
 #include "queue.h"
 #include "debug_level.h"
@@ -163,10 +162,10 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 void sendCanMsg_test(int delay)
 {
 	  uint8_t tx[8] = {0,1,2,3,4,5,6,7};
-	  TxHeader.StdId             = BROADCAST;    	 // ID do dispositivo
-	  TxHeader.RTR               = CAN_RTR_DATA;     //(Remote Transmission Request) especifica Remote Frame ou Data Frame.
-	  TxHeader.IDE               = CAN_ID_STD;    	 //define o tipo de id (standard ou extended)
-	  TxHeader.DLC               = 8;     			 //Tamanho do pacote 0 - 8 bytes
+	  TxHeader.StdId             = BROADCAST;
+	  TxHeader.RTR               = CAN_RTR_DATA;
+	  TxHeader.IDE               = CAN_ID_STD;
+	  TxHeader.DLC               = 8;
 	  TxHeader.TransmitGlobalTime = DISABLE;
 
 	  int status = HAL_CAN_AddTxMessage(&hcan, &TxHeader, tx, &TxMailbox);

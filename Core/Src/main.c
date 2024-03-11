@@ -62,10 +62,10 @@ extern module_cfg configs;
 bool aux = 0;
 uint16_t adc_count = 0;
 
-extern uint16_t bufferTensao[64];
-extern uint16_t bufferTensaoVAD[64];
-extern uint16_t bufferTensaoVBD[64];
-extern uint16_t bufferTensaoVCD[64];
+//extern uint16_t bufferTensao[64];
+//extern uint16_t bufferTensaoVAD[64];
+//extern uint16_t bufferTensaoVBD[64];
+//extern uint16_t bufferTensaoVCD[64];
 extern osMessageQId queue_can_sendHandle;
 extern  osMessageQId queue_process_dataHandle;
 SignalQ sgnalQual[3] = {0};
@@ -210,7 +210,6 @@ void StartDefaultTask(void const * argument)
 osDelay(3000);
 __HAL_TIM_CLEAR_IT(&htim3 ,TIM_IT_UPDATE);
  HAL_TIM_Base_Start_IT(&htim3);
-CanPacket canTeste = {0};
   /* Infinite loop */
   for(;;)
   {
@@ -298,14 +297,6 @@ void fill_data(CanPacket *message, MeanValues values)
 	message->canDataFields.data[4] = (uint8_t)( ( (uint16_t)values.meanFreq >> 8) & 0xFF);
 	message->canDataFields.data[5] = (uint8_t)(   (uint16_t)values.meanFreq & 0xFF );
 
-	// teste correto da conversao para 2 uint8_t e ao contrario
-//    uint16_t testeint;
-//    uint8_t teste8;
-//    uint8_t teste82;
-//    float f = 1145.56;
-//    teste8 = (uint8_t)(((uint16_t)f >> 8) & 0xFF);
-//    teste82 = (uint8_t)((uint16_t)f  & 0xFF);
-//    printf("%d", ((uint16_t)teste8 << 8) |  teste82 );
 }
 
 void send_data_to_queue(MeanValues values[])
