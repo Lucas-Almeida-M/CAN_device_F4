@@ -9,6 +9,7 @@
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 #define NUCLEO
+//#define BLACK_PILL
 
 int print_debug (char *msg)
 {
@@ -17,7 +18,7 @@ int print_debug (char *msg)
 	#endif //NUCLEO
 
 	#ifdef BLACK_PILL
-	HAL_UART_Transmit(&huart1, (uint8_t*)msg, strlen(&msg), 10);
+	HAL_UART_Transmit(&huart1, (uint8_t*)msg, strlen(msg), 10);
 	#endif //BLACK_PILL
 
 	return 0;

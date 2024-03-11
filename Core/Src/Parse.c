@@ -29,9 +29,10 @@ bool CanWritePacket(uint32_t id, uint8_t *buffer, uint8_t can_rtr, uint16_t tama
 
 void LoadFilterList(CanFilterList *filterIdList) {
 
-        filterIdList->FilterIdList[0] = (uint32_t) BROADCAST;
-        filterIdList->FilterIdList[1] = (uint32_t) BOARD_F7;
-        filterIdList->FilterIdList[2] = (uint32_t) DEVICE_ID;
+        filterIdList->FilterIdList[0] = (uint32_t) SYNC;
+        filterIdList->FilterIdList[1] = (uint32_t) DATA;
+        filterIdList->FilterIdList[2] = (uint32_t) CONFIG;
+        filterIdList->FilterIdList[3] = (uint32_t) REBOOT;
 }
 
 void ConfigFilterList (uint32_t id1, uint32_t id2, uint32_t id3, uint32_t id4, uint32_t filterBank, uint8_t idType, uint8_t filterScale)
@@ -146,11 +147,11 @@ void CAN_ConfigFilter(void)
 
 	HAL_CAN_ConfigFilter(&hcan1, &filterConfig);
 
-	filterConfig.FilterBank = 2;
-	filterConfig.FilterIdHigh = ID << 5;
-	filterConfig.FilterIdLow = 0x00  << 5;
-	filterConfig.FilterMaskIdHigh = ID << 5;
-	filterConfig.FilterMaskIdLow = 0x00 << 5;
+//	filterConfig.FilterBank = 2;
+//	filterConfig.FilterIdHigh = ID << 5;
+//	filterConfig.FilterIdLow = 0x00  << 5;
+//	filterConfig.FilterMaskIdHigh = ID << 5;
+//	filterConfig.FilterMaskIdLow = 0x00 << 5;
 
 	HAL_CAN_ConfigFilter(&hcan1, &filterConfig);
 

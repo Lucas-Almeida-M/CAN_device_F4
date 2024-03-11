@@ -7,7 +7,6 @@
 
 
 #include "can_app.h"
-//#include "cmsis_os2.h"
 #include "cmsis_os.h"
 #include "queue.h"
 #include "debug_level.h"
@@ -40,13 +39,13 @@ void ReceiveCAN_MSG(void *argument)
 		CanPacket canPacket = {0};
 		if (DEBUG_LEVEL > NONE)
 		{
-			sprintf(CanMsgDebug, "CAN message received [ID: %d] [MT: %d] \r\n", canMSG.canID, canMSG.canDataFields.ctrl0);
+			sprintf(CanMsgDebug, "CAN message received [ID: %d] [DeviceNum: %d] \r\n", canMSG.canID, canMSG.canDataFields.deviceNum);
 			print_debug (CanMsgDebug);
 			memset(CanMsgDebug, 0, sizeof(CanMsgDebug));
 		}
 		// conseguiu tirar da fila
 
-			switch (canMSG.canDataFields.ctrl0)
+			switch (canMSG.canID)
 			{
 				case CONFIG:
 					module_cfg cfg = {0};
@@ -55,15 +54,15 @@ void ReceiveCAN_MSG(void *argument)
 						cfg.sensors[i].enable = (bool)(canMSG.canDataFields.data[0] & (1 << i));
 					}
 
-					canPacket.canID = DEVICE_ID;
-					canPacket.canDataFields.ctrl0 = CONFIG;
+					canPacket.canID = CONFIG;
+					canPacket.canDataFields.deviceNum = DEVICE_NUM;
 					if (apply_config(cfg))
 					{
-						canPacket.canDataFields.ctrl1 = 1;
+						canPacket.canDataFields.control = 1;
 					}
 					else
 					{
-						canPacket.canDataFields.ctrl1 = 0;
+						canPacket.canDataFields.control = 0;
 					}
 					xQueueSendToBack(queue_can_sendHandle, &canPacket , 0);
 					break;
@@ -71,14 +70,15 @@ void ReceiveCAN_MSG(void *argument)
 
 					break;
 				case SYNC:
-					canPacket.canID = DEVICE_ID;
-					canPacket.canDataFields.ctrl0 = SYNC;
+					canPacket.canID = SYNC;
+					canPacket.canDataFields.deviceNum = DEVICE_NUM;
 					for (int i = 0; i < 8; i++)
 					{
-						canPacket.canDataFields.ctrl1 = canPacket.canDataFields.ctrl1 | (configs.sensors[i].enable << (i));
+						canPacket.canDataFields.control = canPacket.canDataFields.control | (configs.sensors[i].enable << (i));
 					}
-
+					osDelay(5);
 					xQueueSendToBack(queue_can_sendHandle, &canPacket , 0);
+
 					break;
 				case REBOOT:
 					HAL_Delay(100);
@@ -120,13 +120,19 @@ void SendCAN_MSG(void *argument)
 
 		memcpy(buffer , &canMSG.canDataFields , sizeof(buffer));
 		int status = HAL_CAN_AddTxMessage (&hcan1, &TxHeader, buffer, &TxMailbox);
+		if (DEBUG_LEVEL > NONE)
+		{
+			sprintf(CanMsgDebug, "CAN message Sent error = %d \r\n", status);
+			print_debug (CanMsgDebug);
+			memset(CanMsgDebug, 0, sizeof(CanMsgDebug));
+		}
 		if(status)
 		{
 			Error_Handler();
 		}
 		if (DEBUG_LEVEL > NONE)
 		{
-			sprintf(CanMsgDebug, "CAN message Sent [ID: %d] [MT: %d] \r\n", canMSG.canID, canMSG.canDataFields.ctrl0);
+			sprintf(CanMsgDebug, "CAN message Sent [ID: %d] [DeviceNum: %d] \r\n", canMSG.canID, canMSG.canDataFields.deviceNum);
 			print_debug (CanMsgDebug);
 			memset(CanMsgDebug, 0, sizeof(CanMsgDebug));
 		}
@@ -154,16 +160,20 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, canRX);
 	canPacket.canID = RxHeader.StdId;
 	memcpy(&canPacket.canDataFields, canRX, sizeof(canRX));
-	xQueueSendToBackFromISR(queue_can_receiveHandle, &canPacket, &xHigherPriorityTaskWoken);
 
-	HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+	if ((canPacket.canDataFields.deviceNum == DEVICE_NUM) || (canPacket.canDataFields.deviceNum == BroadCast))
+	{
+		xQueueSendToBackFromISR(queue_can_receiveHandle, &canPacket, &xHigherPriorityTaskWoken);
+		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+	}
+
 
 }
 
 void sendCanMsg_test(int delay)
 {
 	  uint8_t tx[8] = {0,1,2,3,4,5,6,7};
-	  TxHeader.StdId             = BROADCAST;    	 // ID do dispositivo
+	  TxHeader.StdId             = SYNC;    	 // ID do dispositivo
 	  TxHeader.RTR               = CAN_RTR_DATA;     //(Remote Transmission Request) especifica Remote Frame ou Data Frame.
 	  TxHeader.IDE               = CAN_ID_STD;    	 //define o tipo de id (standard ou extended)
 	  TxHeader.DLC               = 8;     			 //Tamanho do pacote 0 - 8 bytes

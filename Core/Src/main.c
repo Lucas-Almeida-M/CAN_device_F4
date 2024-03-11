@@ -298,14 +298,6 @@ void fill_data(CanPacket *message, MeanValues values)
 	message->canDataFields.data[4] = (uint8_t)( ( (uint16_t)values.meanFreq >> 8) & 0xFF);
 	message->canDataFields.data[5] = (uint8_t)(   (uint16_t)values.meanFreq & 0xFF );
 
-	// teste correto da conversao para 2 uint8_t e ao contrario
-//    uint16_t testeint;
-//    uint8_t teste8;
-//    uint8_t teste82;
-//    float f = 1145.56;
-//    teste8 = (uint8_t)(((uint16_t)f >> 8) & 0xFF);
-//    teste82 = (uint8_t)((uint16_t)f  & 0xFF);
-//    printf("%d", ((uint16_t)teste8 << 8) |  teste82 );
 }
 
 void send_data_to_queue(MeanValues values[])
@@ -314,9 +306,9 @@ void send_data_to_queue(MeanValues values[])
 
 	for (int i = 0; i < 3; i++)
 	{
-		message.canID = DEVICE_ID;
-		message.canDataFields.ctrl0 = 0; //revisar
-		message.canDataFields.ctrl1 = i; //numero do sensor
+		message.canID = DATA;
+		message.canDataFields.deviceNum = 0; //revisar
+		message.canDataFields.control = i; //numero do sensor
 
 		fill_data(&message, values[i]); // a cada tensao (a b c) envia uma mensagem can com rms, fase e freq
 
@@ -431,8 +423,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   {
       BaseType_t xHigherPriorityTaskWoken = pdFALSE;
       CanPacket canMSG = {0};
-      canMSG.canID = DEVICE_ID;
-      canMSG.canDataFields.ctrl0 = DATA;
+      canMSG.canID = DATA;
+      canMSG.canDataFields.deviceNum = DEVICE_NUM;
 
       int countMSG = 0;
       int dataIdx = 0;
@@ -443,7 +435,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
           if (configs.sensors[sensorIdx].enable)
           {
-              canMSG.canDataFields.ctrl1 |= (1 << sensorIdx);
+              canMSG.canDataFields.control |= (1 << sensorIdx);
 
               canMSG.canDataFields.data[dataIdx] = (uint8_t)((sensorValues[sensorIdx] >> 8) & 0xFF);
               canMSG.canDataFields.data[dataIdx + 1] = (uint8_t)(sensorValues[sensorIdx] & 0xFF);
@@ -455,7 +447,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
           if (countMSG == 3 || (sensorIdx == 7 && countMSG != 0))
           {
               xQueueSendToBackFromISR(queue_can_sendHandle, &canMSG, &xHigherPriorityTaskWoken);
-              canMSG.canDataFields.ctrl1 = 0;
+              canMSG.canDataFields.control = 0;
               countMSG = 0;
               dataIdx = 0;
           }
