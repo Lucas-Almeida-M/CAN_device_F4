@@ -62,10 +62,10 @@ extern module_cfg configs;
 bool aux = 0;
 uint16_t adc_count = 0;
 
-//extern uint16_t bufferTensao[64];
-//extern uint16_t bufferTensaoVAD[64];
-//extern uint16_t bufferTensaoVBD[64];
-//extern uint16_t bufferTensaoVCD[64];
+extern uint16_t bufferTensao[64];
+extern uint16_t bufferTensaoVAD[64];
+extern uint16_t bufferTensaoVBD[64];
+extern uint16_t bufferTensaoVCD[64];
 extern osMessageQId queue_can_sendHandle;
 extern  osMessageQId queue_process_dataHandle;
 SignalQ sgnalQual[3] = {0};
