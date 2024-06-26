@@ -18,7 +18,8 @@ extern osMessageQId queue_can_sendHandle;
 extern osMessageQId queue_can_receiveHandle;
 extern module_cfg configs;
 char CanMsgDebug [64] = {0};
-
+extern uint64_t runtime;
+extern StatusSlave statusSlave;
 
 /***
  * @fn void ReceiveCAN_MSG(void*)
@@ -43,8 +44,6 @@ void ReceiveCAN_MSG(void *argument)
 			print_debug (CanMsgDebug);
 			memset(CanMsgDebug, 0, sizeof(CanMsgDebug));
 		}
-		// conseguiu tirar da fila
-
 			switch (canMSG.canDataFields.ctrl0)
 			{
 				case CONFIG:
@@ -54,11 +53,15 @@ void ReceiveCAN_MSG(void *argument)
 						cfg.sensors[i].enable = (bool)(canMSG.canDataFields.data[0] & (1 << i));
 					}
 
-					canPacket.canID = DEVICE_ID;
+					canPacket.canID = configs.boardID;
 					canPacket.canDataFields.ctrl0 = CONFIG;
 					if (apply_config(cfg))
 					{
 						canPacket.canDataFields.ctrl1 = 1;
+						for (int i = 0; i < SENSOR_NUMBERS; i++)
+						{
+							statusSlave.sensorsHab |= (configs.sensors[i].enable << i);
+						}
 					}
 					else
 					{
@@ -70,7 +73,7 @@ void ReceiveCAN_MSG(void *argument)
 
 					break;
 				case SYNC:
-					canPacket.canID = DEVICE_ID;
+					canPacket.canID =  configs.boardID;
 					canPacket.canDataFields.ctrl0 = SYNC;
 					for (int i = 0; i < 8; i++)
 					{
@@ -84,6 +87,21 @@ void ReceiveCAN_MSG(void *argument)
 					NVIC_SystemReset();
 
 				default:
+
+				case STATUS:
+					canPacket.canID = configs.boardID;
+					canPacket.canDataFields.ctrl0 = STATUS;
+					statusSlave.runtime = (uint16_t) (runtime / 3600);
+
+					canPacket.canDataFields.data[0] = statusSlave.sensorsHab;
+					canPacket.canDataFields.data[1] = statusSlave.internalTemp;
+					canPacket.canDataFields.data[2] = (uint8_t)(statusSlave.transmissionErrors>>8);
+					canPacket.canDataFields.data[3] = (uint8_t)statusSlave.transmissionErrors;
+					canPacket.canDataFields.data[4] = (uint8_t)(statusSlave.runtime>>8);
+					canPacket.canDataFields.data[5] = (uint8_t)statusSlave.runtime;
+
+					xQueueSendToBack(queue_can_sendHandle, &canPacket , 0);
+
 					break;
 			}
 	}

@@ -13,6 +13,7 @@
 #include "stdio.h"
 #include "string.h"
 #include "flash_sector.h"
+#include "can_app.h"
 
 
 #define SENSOR_NUMBERS 8
@@ -63,14 +64,15 @@ enum SavedCFG
 	HEADER_1 		= 1,
 	HEADER_2 		= 2,
 	HEADER_3 		= 3,
-	SENSOR_0_ENABLE = 4,
-	SENSOR_1_ENABLE = 5,
-	SENSOR_2_ENABLE = 6,
-	SENSOR_3_ENABLE = 7,
-	SENSOR_4_ENABLE = 8,
-	SENSOR_5_ENABLE = 9,
-	SENSOR_6_ENABLE = 10,
-	SENSOR_7_ENABLE = 11,
+	IDENTIFIER      = 4,
+	SENSOR_0_ENABLE = 5,
+	SENSOR_1_ENABLE = 6,
+	SENSOR_2_ENABLE = 7,
+	SENSOR_3_ENABLE = 8,
+	SENSOR_4_ENABLE = 9,
+	SENSOR_5_ENABLE = 10,
+	SENSOR_6_ENABLE = 11,
+	SENSOR_7_ENABLE = 12,
 	TOTAL_CFG_BYTES
 
 };

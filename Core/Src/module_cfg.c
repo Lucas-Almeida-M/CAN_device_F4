@@ -10,6 +10,7 @@
 
 module_cfg configs = {0};
 module_cfg read_cfg = {0};
+extern StatusSlave statusSlave;
 
 float bufferTensaoVA[64] = { 1,          1.09801714, 1.19509032, 1.29028468, 1.38268343, 1.47139674,
 							  1.55557023, 1.63439328, 1.70710678, 1.77301045, 1.83146961, 1.88192126,
@@ -80,6 +81,7 @@ void module_cfg_init(void)
 		 (savedConfig[HEADER_2] == 230) &&
 		 (savedConfig[HEADER_3] == 165)    ) // aplly saved config
 	{
+		configs.boardID = savedConfig[IDENTIFIER];
 		configs.sensors[0].enable = (bool) savedConfig[SENSOR_0_ENABLE];
 		configs.sensors[1].enable = (bool) savedConfig[SENSOR_1_ENABLE];
 		configs.sensors[2].enable = (bool) savedConfig[SENSOR_2_ENABLE];
@@ -112,6 +114,11 @@ void module_cfg_init(void)
 			configs.outputs[2].enable = true;
 		}
 	}
+
+	for (int i = 0; i < SENSOR_NUMBERS; i++)
+	{
+		statusSlave.sensorsHab |= (configs.sensors[i].enable << i);
+	}
 }
 
 int apply_config(module_cfg newConfig)
@@ -124,8 +131,9 @@ int apply_config(module_cfg newConfig)
 	uint32_t saveBuffer[64]  = {0};
 
 	uint32_t headerBuff[4] = {2,200,230,165};
-	uint32_t cfgBuff[8] = {0};
-	for (int i = 0; i < 8; i++)
+	uint32_t cfgBuff[TOTAL_CFG_BYTES - 4] = {0};
+	cfgBuff[0] = configs.boardID;
+	for (int i = 1; i < (TOTAL_CFG_BYTES - 4); i++)
 	{
 		cfgBuff[i] = configs.sensors[i].enable;
 	}

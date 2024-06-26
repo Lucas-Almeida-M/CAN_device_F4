@@ -34,7 +34,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-int count = 0;
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -53,6 +53,11 @@ int count = 0;
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+
+int count = 0;
+uint64_t runtime = 0;
+StatusSlave statusSlave = {0};
+
 uint8_t uartRxBuffer[256] = {0};
 uint8_t uartTxBuffer[256] = {0};
 
@@ -101,7 +106,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  module_cfg_init();
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -120,10 +125,11 @@ int main(void)
   MX_TIM3_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim2);
   HAL_UART_Receive_IT(&huart1, uartRxBuffer, 256);
-  module_cfg_init();
+
 //  HAL_ADCEx_Calibration_Start(&hadc1);
   HAL_ADC_Start_DMA(&hadc1, adcint, 8);
 
@@ -305,7 +311,7 @@ void send_data_to_queue(MeanValues values[])
 
 	for (int i = 0; i < 3; i++)
 	{
-		message.canID = DEVICE_ID;
+		message.canID =  configs.boardID;
 		message.canDataFields.ctrl0 = 0; //revisar
 		message.canDataFields.ctrl1 = i; //numero do sensor
 
@@ -392,7 +398,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			BaseType_t xStatus = xQueueSendToBackFromISR(queue_process_dataHandle, &sensorData.sensorData_buff, 0);
 			if (xStatus != pdPASS)
 			{
-				uint8_t a = 6;
+
 			}
 			aux = 1;
 			adc_count = 0;
@@ -404,7 +410,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   {
       BaseType_t xHigherPriorityTaskWoken = pdFALSE;
       CanPacket canMSG = {0};
-      canMSG.canID = DEVICE_ID;
+      canMSG.canID = configs.boardID;
       canMSG.canDataFields.ctrl0 = DATA;
 
       int countMSG = 0;
@@ -433,6 +439,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
               dataIdx = 0;
           }
       }
+  }
+
+  if (htim->Instance == TIM4)
+  {
+	  runtime++;
   }
 
   /* USER CODE END Callback 1 */

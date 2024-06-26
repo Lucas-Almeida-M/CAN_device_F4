@@ -12,4 +12,14 @@
 #include "Parse.h"
 #include "module_cfg.h"
 
+
+typedef struct _StatusSlave
+{
+	uint8_t sensorsHab;
+	uint8_t internalTemp;
+	uint16_t transmissionErrors;
+	uint16_t runtime;
+}StatusSlave;
+
+
 #endif /* INC_CAN_APP_H_ */

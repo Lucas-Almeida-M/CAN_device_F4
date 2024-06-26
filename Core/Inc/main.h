@@ -36,7 +36,7 @@ extern "C" {
 #include "stdio.h"
 #include "math.h"
 #include "flash_sector.h"
-
+#include "can_app.h"
 //#include "queue.h"
 //#include "lfs.h"
 //#include "lfs_app.h"

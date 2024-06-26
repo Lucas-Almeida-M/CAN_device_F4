@@ -1,6 +1,6 @@
 #include <Parse.h>
 
-
+extern module_cfg configs;
 uint32_t TxMailbox;
 
 CAN_FilterTypeDef *canFilterConfig1;
@@ -30,7 +30,7 @@ void LoadFilterList(CanFilterList *filterIdList) {
 
         filterIdList->FilterIdList[0] = (uint32_t) BROADCAST;
         filterIdList->FilterIdList[1] = (uint32_t) BOARD_F7;
-        filterIdList->FilterIdList[2] = (uint32_t) DEVICE_ID;
+        filterIdList->FilterIdList[2] = (uint32_t) configs.boardID;
 }
 
 void ConfigFilterList (uint32_t id1, uint32_t id2, uint32_t id3, uint32_t id4, uint32_t filterBank, uint8_t idType, uint8_t filterScale)

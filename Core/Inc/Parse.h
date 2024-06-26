@@ -6,6 +6,7 @@
 #include "can.h"
 #include <stdio.h>
 #include <stdbool.h>
+#include "module_cfg.h"
 
 #define ID 0x02
 
@@ -33,7 +34,6 @@ typedef union
 	{
 		BROADCAST  = 0x00,
 		BOARD_F7   = 0x01,
-		DEVICE_ID   = ID, // HABILITAR DE ACORDO COM DEVICE
 
 	} FilterId;
 
@@ -43,10 +43,11 @@ typedef union
 
 enum MessageType
 {
-	CONFIG = 0x0,
+	SYNC   = 0x0,
 	DATA   = 0x1,
-	SYNC   = 0x2,
-	REBOOT = 0x3
+	CONFIG = 0x2,
+	STATUS = 0x3,
+	REBOOT = 0x4
 };
 
 
