@@ -15,7 +15,7 @@
 
 typedef struct _StatusSlave
 {
-	uint8_t sensorsHab;
+	uint8_t sensortype;
 	uint8_t internalTemp;
 	uint16_t transmissionErrors;
 	uint16_t runtime;

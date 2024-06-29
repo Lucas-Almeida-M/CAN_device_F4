@@ -57,11 +57,11 @@ void ReceiveCAN_MSG(void *argument)
 					canPacket.canDataFields.ctrl0 = CONFIG;
 					if (apply_config(cfg))
 					{
-						canPacket.canDataFields.ctrl1 = 1;
-						for (int i = 0; i < SENSOR_NUMBERS; i++)
-						{
-							statusSlave.sensorsHab |= (configs.sensors[i].enable << i);
-						}
+//						canPacket.canDataFields.ctrl1 = 1;
+//						for (int i = 0; i < SENSOR_NUMBERS; i++)
+//						{
+//							statusSlave.sensorsHab |= (configs.sensors[i].enable << i);
+//						}
 					}
 					else
 					{
@@ -73,7 +73,7 @@ void ReceiveCAN_MSG(void *argument)
 
 					break;
 				case SYNC:
-					canPacket.canID =  configs.boardID;
+					canPacket.canID = configs.boardID;
 					canPacket.canDataFields.ctrl0 = SYNC;
 					for (int i = 0; i < 8; i++)
 					{
@@ -93,7 +93,7 @@ void ReceiveCAN_MSG(void *argument)
 					canPacket.canDataFields.ctrl0 = STATUS;
 					statusSlave.runtime = (uint16_t) (runtime / 3600);
 
-					canPacket.canDataFields.data[0] = statusSlave.sensorsHab;
+					canPacket.canDataFields.data[0] = statusSlave.sensortype;
 					canPacket.canDataFields.data[1] = statusSlave.internalTemp;
 					canPacket.canDataFields.data[2] = (uint8_t)(statusSlave.transmissionErrors>>8);
 					canPacket.canDataFields.data[3] = (uint8_t)statusSlave.transmissionErrors;
@@ -139,7 +139,7 @@ void SendCAN_MSG(void *argument)
 		int status = HAL_CAN_AddTxMessage (&hcan1, &TxHeader, buffer, &TxMailbox);
 		if(status)
 		{
-			Error_Handler();
+			statusSlave.transmissionErrors++;
 		}
 		if (DEBUG_LEVEL > NONE)
 		{
@@ -148,6 +148,7 @@ void SendCAN_MSG(void *argument)
 			memset(CanMsgDebug, 0, sizeof(CanMsgDebug));
 		}
 		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+
 	}
 
     osDelay(1);

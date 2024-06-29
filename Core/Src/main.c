@@ -53,7 +53,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+#define Avg_Slope 0.0025
+#define V25 0.76
+#define VSENSE 3.3/4096
 int count = 0;
 uint64_t runtime = 0;
 StatusSlave statusSlave = {0};
@@ -62,7 +64,7 @@ uint8_t uartRxBuffer[256] = {0};
 uint8_t uartTxBuffer[256] = {0};
 
 
-uint16_t adcint[8] = {0};
+uint16_t adcint[9] = {0};
 extern module_cfg configs;
 bool aux = 0;
 uint16_t adc_count = 0;
@@ -106,6 +108,18 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
+//  module_cfg newConfigteste;
+//  newConfigteste.boardID = 2;
+//  newConfigteste.enable = true;
+//  newConfigteste.sensors[0].enable = 1;
+//  newConfigteste.sensors[1].enable = 1;
+//  newConfigteste.sensors[2].enable = 1;
+//  newConfigteste.sensors[3].enable = 1;
+//  newConfigteste.sensors[4].enable = 1;
+//  newConfigteste.sensors[5].enable = 1;
+//  newConfigteste.sensors[6].enable = 1;
+//  newConfigteste.sensors[7].enable = 1;
+//  apply_config(newConfigteste);
   module_cfg_init();
   /* USER CODE END Init */
 
@@ -128,10 +142,11 @@ int main(void)
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim2);
+  HAL_TIM_Base_Start_IT(&htim4);
   HAL_UART_Receive_IT(&huart1, uartRxBuffer, 256);
 
 //  HAL_ADCEx_Calibration_Start(&hadc1);
-  HAL_ADC_Start_DMA(&hadc1, adcint, 8);
+  HAL_ADC_Start_DMA(&hadc1, adcint, 9);
 
 
   /* USER CODE END 2 */
@@ -443,6 +458,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
   if (htim->Instance == TIM4)
   {
+	  statusSlave.internalTemp = ((VSENSE*adcint[8] - V25) / Avg_Slope) + 25;
 	  runtime++;
   }
 

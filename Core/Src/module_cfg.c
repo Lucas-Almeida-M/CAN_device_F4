@@ -114,11 +114,11 @@ void module_cfg_init(void)
 			configs.outputs[2].enable = true;
 		}
 	}
-
-	for (int i = 0; i < SENSOR_NUMBERS; i++)
-	{
-		statusSlave.sensorsHab |= (configs.sensors[i].enable << i);
-	}
+	statusSlave.sensortype = 0;
+//	for (int i = 0; i < SENSOR_NUMBERS; i++)
+//	{
+//		statusSlave.sensorsHab |= (configs.sensors[i].enable << i);
+//	}
 }
 
 int apply_config(module_cfg newConfig)
